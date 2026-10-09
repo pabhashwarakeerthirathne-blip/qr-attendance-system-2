@@ -319,7 +319,7 @@ function renderLandingScreen(root) {
       </main>
 
       <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-        University Event Attendance System • Student ID Format: <code class="mono">PS/YYYY/NNN</code>
+        Padura 2026 copyright © 2026 All Rights Reserved.
       </footer>
     </div>
   `;
@@ -422,6 +422,9 @@ function renderStudentPortal(root) {
           ${renderStudentLookupResultHTML(data)}
         </div>
       </main>
+      <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: auto;">
+        Padura 2026 copyright © 2026 All Rights Reserved.
+      </footer>
     </div>
   `;
 
@@ -664,6 +667,9 @@ function renderLoginScreen(root, targetRole) {
           }
         </div>
       </main>
+      <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: auto;">
+        Padura 2026 copyright © 2026 All Rights Reserved
+      </footer>
     </div>
   `;
 
@@ -845,6 +851,9 @@ async function renderStaffShell(root, portalRole) {
             <p style="margin-top: 0.5rem;">Loading ${escapeHtml(activeItem.label)}...</p>
           </div>
         </main>
+        <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 1rem 1rem 5rem 1rem; border-top: 1px solid var(--border-color); margin-top: auto;">
+           Padura 2026 copyright © 2026 All Rights Reserved.
+        </footer>
       </div>
 
       <!-- Mobile Bottom Navigation -->
