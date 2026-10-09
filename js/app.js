@@ -728,24 +728,24 @@ function getNavItemsForRole(portalRole) {
   if (portalRole === 'SUPER_ADMIN') {
     // Exact Super Admin navigation items from Section 61
     return [
-      { id: 'dashboard', label: 'Dashboard', icon: '📊', mobileBar: true },
-      { id: 'events', label: 'Events', icon: '📅', mobileBar: false },
-      { id: 'attendance', label: 'Attendance', icon: '🕒', mobileBar: true },
-      { id: 'students', label: 'Students', icon: '🎓', mobileBar: true },
-      { id: 'admins', label: 'Admins', icon: '👥', mobileBar: false },
-      { id: 'reports', label: 'Reports', icon: '📈', mobileBar: true },
-      { id: 'session-settings', label: 'Session Settings', icon: '⚙', mobileBar: false },
-      { id: 'audit-logs', label: 'Audit Logs', icon: '🛡', mobileBar: false },
-      { id: 'settings', label: 'Settings', icon: '🔧', mobileBar: false }
+      { id: 'dashboard', label: 'Dashboard', icon: '', mobileBar: true },
+      { id: 'events', label: 'Events', icon: '', mobileBar: false },
+      { id: 'attendance', label: 'Attendance', icon: '', mobileBar: true },
+      { id: 'students', label: 'Students', icon: '', mobileBar: true },
+      { id: 'admins', label: 'Admins', icon: '', mobileBar: false },
+      { id: 'reports', label: 'Reports', icon: '', mobileBar: true },
+      { id: 'session-settings', label: 'Session Settings', icon: '', mobileBar: false },
+      { id: 'audit-logs', label: 'Audit Logs', icon: '', mobileBar: false },
+      { id: 'settings', label: 'Settings', icon: '', mobileBar: false }
     ];
   }
 
   // Exact Admin navigation items from Section 61
   return [
-    { id: 'scanner', label: 'Scanner', icon: '📷', mobileBar: true },
-    { id: 'manual-attendance', label: 'Manual Attendance', icon: '⌨', mobileBar: true },
-    { id: 'current-event', label: 'Current Event', icon: '📡', mobileBar: true },
-    { id: 'today-attendance', label: "Today's Attendance", icon: '📋', mobileBar: true }
+    { id: 'scanner', label: 'Scanner', icon: '', mobileBar: true },
+    { id: 'manual-attendance', label: 'Manual Attendance', icon: '', mobileBar: true },
+    { id: 'current-event', label: 'Current Event', icon: '', mobileBar: true },
+    { id: 'today-attendance', label: "Today's Attendance", icon: '', mobileBar: true }
   ];
 }
 
