@@ -792,7 +792,7 @@ async function renderStaffShell(root, portalRole) {
               ? `
                 <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
                   <button type="button" class="nav-item-btn" id="btn-super-open-scanner">
-                    <span aria-hidden="true">📷</span>
+                    <span aria-hidden="true"></span>
                     <span>Open QR Scanner</span>
                   </button>
                 </div>
@@ -1620,7 +1620,7 @@ async function renderSuperDashboardView(container) {
               : ''
           }
           <button type="button" class="btn btn-sm btn-primary" id="btn-dash-launch-scanner">
-            📷 Launch Scanner
+            Launch Scanner
           </button>
         </div>
       </div>
@@ -2586,7 +2586,7 @@ async function renderSuperAdminsView(container) {
         <form id="form-create-admin">
           <div class="form-group">
             <label class="form-label" for="adm-name">Admin Name</label>
-            <input type="text" id="adm-name" class="form-input" placeholder="Gate Scanner Officer" required />
+            <input type="text" id="adm-name" class="form-input" placeholder="Scanner Officer" required />
           </div>
 
           <div class="form-group">
