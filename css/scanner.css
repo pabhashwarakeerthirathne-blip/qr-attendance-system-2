@@ -1,0 +1,243 @@
+/* ==========================================================================
+   css/scanner.css
+   Dedicated QR Code Scanner Screen Styles (Sections 11, 33, 37, 57)
+   ========================================================================== */
+
+.scanner-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.scanner-viewport-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.scanner-session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.scanner-camera-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 440px;
+  background: #090D16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Scan Area Targeting Overlay (Section 11) */
+.scan-reticle-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, transparent 42%, rgba(9, 13, 22, 0.58) 78%);
+}
+
+.scan-reticle-box {
+  width: 220px;
+  height: 220px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 18px;
+  position: relative;
+  box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.32);
+}
+
+.scan-reticle-box::before,
+.scan-reticle-box::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  border: 4px solid #3B82F6;
+  clip-path: polygon(
+    0 0, 26% 0, 26% 100%, 0 100%,
+    0 0, 100% 0, 100% 26%, 0 26%,
+    100% 100%, 74% 100%, 74% 0, 100% 0,
+    0 100%, 0 74%, 100% 74%, 100% 100%
+  );
+}
+
+.scan-laser-line {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #34D399, transparent);
+  box-shadow: 0 0 8px #34D399;
+}
+
+.scan-reticle-hint {
+  margin-top: 0.9rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #F8FAFC;
+  font-size: 0.82rem;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.camera-overlay-message {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.92);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  z-index: 5;
+}
+
+.camera-status-box {
+  max-width: 340px;
+}
+
+.camera-status-box h4 {
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.camera-status-box p {
+  font-size: 0.88rem;
+  color: #CBD5E1;
+}
+
+.scanner-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+/* Immediate Visual Scan Feedback Panel (Sections 11, 57) */
+.scan-feedback-panel {
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 2px solid var(--border-color);
+  text-align: center;
+}
+
+.feedback-success {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success-text);
+}
+
+.feedback-warning {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning-text);
+}
+
+.feedback-error {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger-text);
+}
+
+.feedback-loading {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+.feedback-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  margin: 0 auto 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="dark"] .feedback-icon {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.feedback-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.65rem;
+}
+
+.feedback-student {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.feedback-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.feedback-value {
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.feedback-desc {
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.feedback-actions {
+  margin-top: 0.85rem;
+}
+
+/* Quick Demo QR Simulator Chips for Desktop/Testing */
+.sim-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}

@@ -1,0 +1,142 @@
+/* ==========================================================================
+   css/responsive.css
+   Mobile-First & Responsive Breakpoints (360px+ Mobile, Tablet, Desktop)
+   ========================================================================== */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+.mobile-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .scanner-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .role-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .role-card-btn {
+    min-height: 120px;
+    padding: 1.35rem;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .role-card-arrow {
+    margin-top: 0;
+    margin-left: auto;
+  }
+
+  /* Hide fixed desktop sidebar by default on mobile; open as drawer when toggled */
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .app-main {
+    margin-left: 0;
+    padding-bottom: 74px; /* Space for mobile bottom navigation */
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .app-topbar {
+    padding: 0 1rem;
+  }
+
+  .app-content {
+    padding: 1rem;
+  }
+
+  /* Compact Bottom Navigation for Mobile (Section 34) */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    z-index: 35;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 0.25rem;
+  }
+
+  .mobile-nav-btn {
+    flex: 1;
+    min-height: 48px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .mobile-nav-btn.active {
+    color: var(--primary);
+  }
+
+  .mobile-nav-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-hero h1 {
+    font-size: 1.45rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 0.9rem;
+  }
+
+  .stat-value {
+    font-size: 1.45rem;
+  }
+
+  .scan-reticle-box {
+    width: 190px;
+    height: 190px;
+  }
+
+  .scanner-camera-stage {
+    aspect-ratio: 1 / 1;
+  }
+
+  .toast-container {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 4.5rem;
+    max-width: none;
+  }
+}
