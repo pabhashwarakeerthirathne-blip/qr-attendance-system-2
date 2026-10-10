@@ -367,7 +367,6 @@ function renderStudentPortal(root) {
     <div class="landing-wrapper" style="justify-content: flex-start;">
       <header class="landing-header">
         <div class="brand-logo">
-          <span class="brand-icon" aria-hidden="true">🎓</span>
           <span>Student Attendance Portal</span>
         </div>
         <div class="topbar-actions" role="navigation" aria-label="Student Navigation">
@@ -399,7 +398,7 @@ function renderStudentPortal(root) {
                   id="input-student-lookup"
                   class="form-input mono"
                   style="flex: 1; min-width: 200px;"
-                  placeholder="PS/2023/174"
+                  placeholder="PS/XXXX/XX"
                   value="${escapeHtml(state.studentLookupQuery)}"
                   autocomplete="off"
                   required
@@ -407,12 +406,6 @@ function renderStudentPortal(root) {
                 <button type="submit" class="btn btn-primary" id="btn-student-lookup">
                   View Attendance
                 </button>
-              </div>
-              <div class="form-hint">
-                Format: <code class="mono">PS/YYYY/NNN</code> — Try test IDs:
-                <button type="button" class="btn btn-sm btn-outline stu-quick-chip" data-id="PS/2023/174" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.75rem;">PS/2023/174</button>
-                <button type="button" class="btn btn-sm btn-outline stu-quick-chip" data-id="PS/2023/001" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.75rem;">PS/2023/001</button>
-                <button type="button" class="btn btn-sm btn-outline stu-quick-chip" data-id="PS/2023/002" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.75rem;">PS/2023/002</button>
               </div>
             </div>
           </form>
