@@ -393,7 +393,7 @@ export async function recordAttendanceScan(
       success: false,
       code: 'INVALID_FORMAT',
       student_number: validation.normalized || String(rawStudentNumber || '').trim(),
-      message: 'Invalid Student ID: This code does not contain a valid Student Number (PS/YYYY/NNN).'
+      message: validation.error
     };
   }
 
