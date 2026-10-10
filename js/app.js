@@ -398,7 +398,7 @@ function renderStudentPortal(root) {
                   id="input-student-lookup"
                   class="form-input mono"
                   style="flex: 1; min-width: 200px;"
-                  placeholder="PS/XXXX/XX"
+                  placeholder="PS/XXXX/XXX"
                   value="${escapeHtml(state.studentLookupQuery)}"
                   autocomplete="off"
                   required
