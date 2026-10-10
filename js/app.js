@@ -264,7 +264,7 @@ function renderLandingScreen(root) {
       <header class="landing-header">
         <a href="#top" class="brand-logo" id="brand-home-link">
           <span class="brand-icon" aria-hidden="true">QR</span>
-          <span>UniAttend</span>
+          <span>Padura2026</span>
         </a>
         <div class="topbar-actions">
           <span class="status-badge ${liveMode ? 'badge-success' : 'badge-primary'}" title="Database Connection Mode">
@@ -319,7 +319,7 @@ function renderLandingScreen(root) {
       </main>
 
       <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-        Padura 2026 copyright © 2026 All Rights Reserved.
+        Copyright © Padura2026.All Rights Reserved. Designed & Developed by Pansilu Pabhashwara and Kavindu Kanchana
       </footer>
     </div>
   `;
@@ -416,7 +416,7 @@ function renderStudentPortal(root) {
         </div>
       </main>
       <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: auto;">
-        Padura 2026 copyright © 2026 All Rights Reserved.
+        Copyright © Padura2026.All Rights Reserved. Designed & Developed by Pansilu Pabhashwara and Kavindu Kanchana
       </footer>
     </div>
   `;
@@ -661,7 +661,7 @@ function renderLoginScreen(root, targetRole) {
         </div>
       </main>
       <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: auto;">
-        Padura 2026 copyright © 2026 All Rights Reserved
+        Copyright © Padura2026.All Rights Reserved. Designed & Developed by Pansilu Pabhashwara and Kavindu Kanchana
       </footer>
     </div>
   `;
@@ -845,7 +845,7 @@ async function renderStaffShell(root, portalRole) {
           </div>
         </main>
         <footer style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 1rem 1rem 5rem 1rem; border-top: 1px solid var(--border-color); margin-top: auto;">
-           Padura 2026 copyright © 2026 All Rights Reserved.
+           Copyright © Padura2026.All Rights Reserved. Designed & Developed by Pansilu Pabhashwara and Kavindu Kanchana
         </footer>
       </div>
 
