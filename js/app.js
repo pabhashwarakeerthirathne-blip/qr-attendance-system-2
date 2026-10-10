@@ -1066,33 +1066,7 @@ async function renderAdminScannerView(container) {
               Mark Attendance
             </button>
           </form>
-
-          <!-- Quick QR Test Simulator for instant desktop verification of all test scenarios -->
-          <div style="margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-color);">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
-              Simulate QR Camera Scan (Test Scenarios):
-            </span>
-            <div class="sim-chips-row">
-              <button type="button" class="btn btn-sm btn-outline sim-qr-btn" data-qr="PS/2023/174">
-                QR: PS/2023/174
-              </button>
-              <button type="button" class="btn btn-sm btn-outline sim-qr-btn" data-qr="PS/2023/003">
-                QR: PS/2023/003
-              </button>
-              <button type="button" class="btn btn-sm btn-outline sim-qr-btn" data-qr="PS/2023/250">
-                QR: PS/2023/250
-              </button>
-              <button type="button" class="btn btn-sm btn-outline sim-qr-btn" data-qr="PS/2023/999" title="Test Scenario 5: Unregistered student">
-                QR: PS/2023/999 (Unregistered)
-              </button>
-              <button type="button" class="btn btn-sm btn-outline sim-qr-btn" data-qr="ABC123" title="Test Scenario 4: Invalid QR">
-                QR: ABC123 (Invalid)
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+          
       <!-- RIGHT COLUMN: IMMEDIATE SCAN RESULT + LIVE EVENT COUNTS -->
       <div>
         <div id="scanner-result-banner" class="scan-feedback-panel hidden" aria-live="assertive"></div>
