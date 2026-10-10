@@ -3,11 +3,12 @@
  * Core validation, formatting, audio/haptic feedback, and CSV/Excel export utilities.
  */
 
+// Accepts any 2-letter uppercase prefix followed by /YYYY/NNN
 export const STUDENT_NUMBER_REGEX = /^([A-Z]{2})\/\d{4}\/\d{3,}$/;
 
 /**
  * Normalizes a student number (trims whitespace, converts to uppercase).
- * Example: " ps/2023/174 " -> "PS/2023/174"
+ * Example: " tt/2023/152 " -> "TT/2023/152"
  */
 export function normalizeStudentNumber(raw) {
   if (typeof raw !== 'string') return '';
@@ -15,7 +16,7 @@ export function normalizeStudentNumber(raw) {
 }
 
 /**
- * Validates that a student number strictly matches ^PS\/\d{4}\/\d{3,}$
+ * Validates that a student number strictly matches XX/YYYY/NNN (e.g. AC/2023/152)
  */
 export function validateStudentNumber(raw) {
   const normalized = normalizeStudentNumber(raw);
@@ -25,7 +26,7 @@ export function validateStudentNumber(raw) {
     normalized,
     error: valid
       ? null
-      : 'Invalid Student Number. Format must be PS/YYYY/NNN'
+      : 'Invalid Student Number. Format must be XX/YYYY/NNN (e.g., AC/2023/152)'
   };
 }
 
