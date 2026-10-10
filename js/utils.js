@@ -3,7 +3,7 @@
  * Core validation, formatting, audio/haptic feedback, and CSV/Excel export utilities.
  */
 
-export const STUDENT_NUMBER_REGEX = /^PS\/\d{4}\/\d{3,}$/;
+export const STUDENT_NUMBER_REGEX = /^([A-Z]{2})\/\d{4}\/\d{3,}$/;
 
 /**
  * Normalizes a student number (trims whitespace, converts to uppercase).
@@ -25,7 +25,7 @@ export function validateStudentNumber(raw) {
     normalized,
     error: valid
       ? null
-      : 'Invalid Student Number. Format must be PS/YYYY/NNN (e.g., PS/2023/174).'
+      : 'Invalid Student Number. Format must be PS/YYYY/NNN'
   };
 }
 
