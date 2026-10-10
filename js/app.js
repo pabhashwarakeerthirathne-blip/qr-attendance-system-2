@@ -765,7 +765,7 @@ async function renderStaffShell(root, portalRole) {
         <div class="sidebar-header">
           <div class="brand-logo">
             <span class="brand-icon" aria-hidden="true">QR</span>
-            <span>UniAttend</span>
+            <span>Padura2026</span>
           </div>
           <span class="sidebar-role-pill">${portalRole === 'SUPER_ADMIN' ? 'SUPER ADMIN' : 'ADMIN'}</span>
         </div>
