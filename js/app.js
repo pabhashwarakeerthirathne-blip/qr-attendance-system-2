@@ -1275,12 +1275,12 @@ async function renderAdminManualView(container) {
               type="text"
               id="input-dedicated-manual"
               class="form-input mono"
-              placeholder="PS/2023/174"
+              placeholder="PS/XXXX/XXX"
               required
               autocomplete="off"
               style="font-size: 1.1rem;"
             />
-            <div class="form-hint">Format: <code class="mono">PS/YYYY/NNN</code> (Method recorded as <code class="mono">MANUAL</code>)</div>
+            <div class="form-hint">Format: <code class="mono">XX/YYYY/NNN</code> (Method recorded as <code class="mono">MANUAL</code>)</div>
           </div>
 
           <div class="form-group">
@@ -1306,7 +1306,7 @@ async function renderAdminManualView(container) {
             type="text"
             id="input-admin-stu-search"
             class="form-input mono"
-            placeholder="Search e.g. PS/2023/174"
+            placeholder="Search e.g. PS/XXXX/XXX"
           />
           <button type="submit" class="btn btn-outline">Search</button>
         </form>
