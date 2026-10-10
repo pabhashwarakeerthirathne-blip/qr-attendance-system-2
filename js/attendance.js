@@ -1,7 +1,8 @@
 /**
  * js/attendance.js
- * Unified Attendance Service (QR + Manual), Event Management, Session Management,
- * End-of-Session LEAVING_NOT_SCANNED Processing, Offline Queue Sync, and Manual Corrections.
+ * Unified Attendance Service (QR + Manual) with Blind Scan / Auto-Registration,
+ * Event Management, Session Management, End-of-Session LEAVING_NOT_SCANNED Processing,
+ * Offline Queue Sync, and Manual Corrections.
  */
 
 import {
@@ -23,7 +24,7 @@ import {
 } from './utils.js';
 
 /**
- * Checks if a session has passed its configured end_time and should automatically close (Section 17).
+ * Checks if a session has passed its configured end_time and should automatically close.
  */
 function hasSessionExpired(session) {
   if (!session || session.status !== 'OPEN') return false;
@@ -58,7 +59,7 @@ export async function listEvents() {
 }
 
 /**
- * Creates a new Event and an associated Attendance Session (Super Admin only - Section 41).
+ * Creates a new Event and an associated Attendance Session (Super Admin only).
  */
 export async function createEvent({
   event_name,
@@ -196,14 +197,11 @@ export async function getActiveOrLatestSession(preferredSessionId = null) {
     target = sessions.find((s) => s.status === 'OPEN') || sessions[0];
   }
 
-  // Enforce automatic closing if current time >= configured end_time (Section 17)
   if (target && target.status === 'OPEN' && hasSessionExpired(target)) {
     try {
       await closeAttendanceSessionInternal(target.id);
       target.status = 'CLOSED';
-    } catch (_) {
-      // If caller is ADMIN without direct update rights, the RPC will enforce it on scan
-    }
+    } catch (_) {}
   }
 
   return target;
@@ -235,7 +233,6 @@ async function closeAttendanceSessionInternal(sessionId) {
     if (rec.session_id === sessionId && rec.entry_time && !rec.leaving_time) {
       rec.status = 'LEAVING_NOT_SCANNED';
       rec.leaving_status = 'LEAVING_NOT_SCANNED';
-      // CRITICAL (Sections 14 & 49): Do NOT invent a fake leaving_time!
       rec.leaving_time = null;
       rec.duration_minutes = null;
       rec.updated_at = now;
@@ -256,17 +253,11 @@ async function closeAttendanceSessionInternal(sessionId) {
   };
 }
 
-/**
- * Super Admin action: Close Attendance Session & process missing leaving scans (Sections 14, 16, 49).
- */
 export async function closeAttendanceSession(sessionId) {
   await verifyRoleAccess(['SUPER_ADMIN']);
   return closeAttendanceSessionInternal(sessionId);
 }
 
-/**
- * Super Admin action: Open Attendance Session (Section 16).
- */
 export async function openAttendanceSession(sessionId) {
   await verifyRoleAccess(['SUPER_ADMIN']);
 
@@ -284,7 +275,6 @@ export async function openAttendanceSession(sessionId) {
   const session = db.attendance_sessions.find((s) => s.id === sessionId);
   if (!session) throw new Error('Attendance session not found.');
 
-  // If session end_time was already passed today, extend end_time to 23:59 so it stays open
   const today = getTodayDateString();
   if (session.session_date === today && getCurrentTimeString().slice(0, 5) >= session.end_time.slice(0, 5)) {
     session.end_time = '23:59';
@@ -293,7 +283,6 @@ export async function openAttendanceSession(sessionId) {
   session.status = 'OPEN';
   session.closed_at = null;
 
-  // Restore records that were marked LEAVING_NOT_SCANNED back to CURRENTLY_ATTENDING while session is open
   db.attendance_records.forEach((rec) => {
     if (rec.session_id === sessionId && !rec.leaving_time && rec.status === 'LEAVING_NOT_SCANNED') {
       rec.status = 'CURRENTLY_ATTENDING';
@@ -314,9 +303,6 @@ export async function openAttendanceSession(sessionId) {
   };
 }
 
-/**
- * Updates Session Settings (Event Name, Date, Start Time, End Time, Status - Section 16).
- */
 export async function updateSessionSettings(sessionId, { event_name, session_date, start_time, end_time, status }) {
   await verifyRoleAccess(['SUPER_ADMIN']);
   if (end_time <= start_time) {
@@ -391,19 +377,9 @@ export async function updateSessionSettings(sessionId, { event_name, session_dat
 }
 
 // ============================================================================
-// UNIFIED ATTENDANCE RECORDING SERVICE (QR & MANUAL - Sections 10-14, 24, 55-56)
+// 1. SCANNER ATTENDANCE RECORDING WITH AUTO-REGISTRATION
 // ============================================================================
 
-/**
- * Records an attendance scan (ENTRY or LEAVING) using identical validation and business rules
- * for both QR Code scanning and Manual Student Number entry.
- *
- * @param {string} rawStudentNumber - e.g. "PS/2023/174"
- * @param {object} options
- * @param {string} options.sessionId - Target attendance session ID
- * @param {'QR'|'MANUAL'} options.method - Scan method ('QR' or 'MANUAL')
- * @param {'AUTO'|'ENTRY_ONLY'|'LEAVING_ONLY'|'FORCE_LEAVING'} options.scanMode - Mode control
- */
 export async function recordAttendanceScan(
   rawStudentNumber,
   { sessionId = null, method = 'QR', scanMode = 'AUTO' } = {}
@@ -411,7 +387,6 @@ export async function recordAttendanceScan(
   const profile = await verifyRoleAccess(['SUPER_ADMIN', 'ADMIN']);
   const cleanMethod = method === 'MANUAL' ? 'MANUAL' : 'QR';
 
-  // Step 1: Validate Student Number Format (^PS/\d{4}/\d{3,}$)
   const validation = validateStudentNumber(rawStudentNumber);
   if (!validation.valid) {
     return {
@@ -424,7 +399,6 @@ export async function recordAttendanceScan(
 
   const studentNumber = validation.normalized;
 
-  // Step 2: Resolve Session
   let targetSessionId = sessionId;
   if (!targetSessionId) {
     const activeSession = await getActiveOrLatestSession();
@@ -440,7 +414,6 @@ export async function recordAttendanceScan(
     };
   }
 
-  // Step 3: Check network status for offline queue support (Section 40)
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     const queuedCount = enqueuePendingScan({
       studentNumber,
@@ -457,14 +430,27 @@ export async function recordAttendanceScan(
       status: 'PENDING_SYNC',
       time: formatTime12h(new Date().toISOString()),
       queued_count: queuedCount,
-      message: 'Network disconnected. Scan saved to local pending queue and will sync automatically.'
+      message: 'Network disconnected. Scan saved to local pending queue.'
     };
   }
 
-  // Step 4: Execute Atomic Database RPC on Live Supabase
   const client = initSupabase();
   if (client) {
     try {
+      // BLIND SCAN AUTO-REGISTRATION: Check if student exists; if not, insert instantly on first scan
+      const { data: existingStudent } = await client
+        .from('students')
+        .select('id')
+        .eq('student_number', studentNumber)
+        .maybeSingle();
+
+      if (!existingStudent) {
+        await client.from('students').insert({
+          student_number: studentNumber,
+          active: true
+        });
+      }
+
       const effectiveMode = scanMode === 'FORCE_LEAVING' ? 'LEAVING_ONLY' : scanMode;
       const { data, error } = await client.rpc('record_attendance_scan', {
         p_student_number: studentNumber,
@@ -476,7 +462,6 @@ export async function recordAttendanceScan(
       if (error) throw error;
       return data;
     } catch (err) {
-      // If network failed mid-request, queue locally
       if (err.message && /fetch|network|offline/i.test(err.message)) {
         const queuedCount = enqueuePendingScan({
           studentNumber,
@@ -500,7 +485,6 @@ export async function recordAttendanceScan(
     }
   }
 
-  // Step 5: Execute Atomic Transaction in Development Sandbox (mirrors record_attendance_scan RPC)
   const db = getDevDb();
   const session = db.attendance_sessions.find((s) => s.id === targetSessionId);
 
@@ -513,7 +497,6 @@ export async function recordAttendanceScan(
     };
   }
 
-  // Automatic session closing check if Current Time >= Session End Time
   if (session.status === 'OPEN' && hasSessionExpired(session)) {
     await closeAttendanceSessionInternal(session.id);
     return {
@@ -533,18 +516,20 @@ export async function recordAttendanceScan(
     };
   }
 
-  // Find registered student
-  const student = db.students.find(
+  // BLIND SCAN AUTO-REGISTRATION for Sandbox
+  let student = db.students.find(
     (s) => s.student_number === studentNumber && s.active !== false
   );
 
   if (!student) {
-    return {
-      success: false,
-      code: 'STUDENT_NOT_FOUND',
+    student = {
+      id: `stu-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       student_number: studentNumber,
-      message: `${studentNumber} is not registered in this event. Please contact the administrator.`
+      active: true,
+      created_at: new Date().toISOString()
     };
+    db.students.push(student);
+    saveDevDb(db);
   }
 
   const nowIso = new Date().toISOString();
@@ -552,7 +537,6 @@ export async function recordAttendanceScan(
     (r) => r.session_id === targetSessionId && r.student_id === student.id
   );
 
-  // Case A: No record yet -> Record ENTRY
   if (!existing) {
     if (scanMode === 'LEAVING_ONLY') {
       return {
@@ -602,7 +586,6 @@ export async function recordAttendanceScan(
     };
   }
 
-  // Case B: Already checked out (LEFT)
   if (existing.leaving_time) {
     return {
       success: false,
@@ -618,11 +601,7 @@ export async function recordAttendanceScan(
     };
   }
 
-  // Case C: Currently attending (entry_time exists, leaving_time is null)
   const secondsSinceEntry = (Date.now() - new Date(existing.entry_time).getTime()) / 1000;
-
-  // Duplicate entry prevention (Section 12):
-  // If scanned within 15 seconds in AUTO mode (or in ENTRY_ONLY mode), prevent accidental double scan
   if (
     scanMode === 'ENTRY_ONLY' ||
     (scanMode === 'AUTO' && secondsSinceEntry < 15)
@@ -639,7 +618,6 @@ export async function recordAttendanceScan(
     };
   }
 
-  // Record LEAVING
   const durationMins = calculateDurationMinutes(existing.entry_time, nowIso);
   existing.leaving_time = nowIso;
   existing.leaving_method = cleanMethod;
@@ -673,9 +651,6 @@ export async function recordAttendanceScan(
   };
 }
 
-/**
- * Synchronizes any offline queued scans when network connectivity returns (Section 40).
- */
 export async function syncPendingScans() {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return { synced: 0, remaining: getPendingScans().length };
@@ -696,22 +671,12 @@ export async function syncPendingScans() {
         removePendingScanById(item.id);
         synced += 1;
       }
-    } catch (_) {
-      // Keep in queue if still failing due to network
-    }
+    } catch (_) {}
   }
 
   return { synced, remaining: getPendingScans().length };
 }
 
-// ============================================================================
-// SUPER ADMIN MANUAL ATTENDANCE ADDITION & CORRECTION (Section 25)
-// ============================================================================
-
-/**
- * Manually edits an existing attendance record (Super Admin only - Section 25).
- * Records full before/after details in the audit log.
- */
 export async function correctAttendanceRecord(
   recordId,
   { entry_time, leaving_time, status, notes }
@@ -789,7 +754,6 @@ export async function correctAttendanceRecord(
     return updated;
   }
 
-  // Development sandbox manual correction
   const db = getDevDb();
   const rec = db.attendance_records.find((r) => r.id === recordId);
   if (!rec) throw new Error('Attendance record not found.');
@@ -851,9 +815,10 @@ export async function correctAttendanceRecord(
   return rec;
 }
 
-/**
- * Super Admin manual creation of a full attendance record (Section 3, 25).
- */
+// ============================================================================
+// 2. MANUAL ATTENDANCE CREATION WITH AUTO-REGISTRATION
+// ============================================================================
+
 export async function manualCreateAttendanceRecord({
   sessionId,
   studentNumber,
@@ -874,13 +839,22 @@ export async function manualCreateAttendanceRecord({
 
   const client = initSupabase();
   if (client) {
-    const { data: student } = await client
+    // BLIND SCAN AUTO-REGISTRATION: Check if student exists; if not, insert instantly on the fly
+    let { data: student } = await client
       .from('students')
       .select('id')
       .eq('student_number', normNumber)
       .maybeSingle();
 
-    if (!student) throw new Error(`Student ${normNumber} is not registered.`);
+    if (!student) {
+      const { data: newStu, error: insErr } = await client
+        .from('students')
+        .insert({ student_number: normNumber, active: true })
+        .select('id')
+        .single();
+      if (insErr) throw new Error(insErr.message);
+      student = newStu;
+    }
 
     const { data, error } = await client
       .from('attendance_records')
@@ -921,9 +895,19 @@ export async function manualCreateAttendanceRecord({
     return data;
   }
 
+  // Development sandbox fallback with auto-registration
   const db = getDevDb();
-  const student = db.students.find((s) => s.student_number === normNumber);
-  if (!student) throw new Error(`Student ${normNumber} is not registered.`);
+  let student = db.students.find((s) => s.student_number === normNumber);
+  if (!student) {
+    student = {
+      id: `stu-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      student_number: normNumber,
+      active: true,
+      created_at: new Date().toISOString()
+    };
+    db.students.push(student);
+    saveDevDb(db);
+  }
 
   const duplicate = db.attendance_records.find(
     (r) => r.session_id === sessionId && r.student_id === student.id
@@ -968,9 +952,6 @@ export async function manualCreateAttendanceRecord({
   return newRec;
 }
 
-/**
- * Deletes an attendance record (Super Admin only - Section 26).
- */
 export async function deleteAttendanceRecord(recordId) {
   await verifyRoleAccess(['SUPER_ADMIN']);
 
