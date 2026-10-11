@@ -167,14 +167,14 @@ BEGIN
     END IF;
 
     -- 2. Validate Student Number Format (^PS/\d{4}/\d{3,}$)
-    IF v_norm_number !~ '^PS/[0-9]{4}/[0-9]{3,}$' THEN
-        RETURN jsonb_build_object(
-            'success', false,
-            'code', 'INVALID_FORMAT',
-            'student_number', v_norm_number,
-            'message', 'Invalid Student Number. Expected format: PS/2023/174'
-        );
-    END IF;
+    IF v_norm_number !~ '^[A-Za-z]{2}/[0-9]{4}/[0-9]{3,}$' THEN
+    RETURN jsonb_build_object(
+        'success', false,
+        'code', 'INVALID_FORMAT',
+        'student_number', v_norm_number,
+        'message', 'Invalid Student Number. Expected format: PS/2023/174'
+    );
+END IF;
 
     -- 3. Validate Session
     SELECT * INTO v_session
