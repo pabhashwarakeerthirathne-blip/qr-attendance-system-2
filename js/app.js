@@ -1897,7 +1897,7 @@ async function renderSuperAttendanceView(container) {
             type="text"
             id="att-search-input"
             class="form-input mono"
-            placeholder="PS/2023/174"
+            placeholder="PS/XXXX/XXX"
           />
         </div>
 
@@ -2347,7 +2347,7 @@ async function renderSuperStudentsView(container) {
             type="text"
             id="input-search-students"
             class="form-input mono"
-            placeholder="Search PS/2023/174"
+            placeholder="Search PS/XXXX/XXX"
             value="${escapeHtml(state.studentsSearch)}"
           />
           <button type="submit" class="btn btn-outline">Search</button>

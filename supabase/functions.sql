@@ -172,7 +172,7 @@ BEGIN
         'success', false,
         'code', 'INVALID_FORMAT',
         'student_number', v_norm_number,
-        'message', 'Invalid Student Number. Expected format: PS/2023/174'
+        'message', 'Invalid Student Number. Expected format: PS/XXXX/XXX'
     );
 END IF;
 
@@ -395,11 +395,11 @@ DECLARE
 BEGIN
     v_norm_number := upper(trim(coalesce(p_student_number, '')));
 
-    IF v_norm_number !~ '^PS/[0-9]{4}/[0-9]{3,}$' THEN
+    IF v_norm_number !~ '^[A-Z]/[0-9]{4}/[0-9]{3,}$' THEN
         RETURN jsonb_build_object(
             'success', false,
             'code', 'INVALID_FORMAT',
-            'message', 'Invalid Student Number. Please enter format PS/2023/174.'
+            'message', 'Invalid Student Number. Please enter format PS/XXXX/XXX.'
         );
     END IF;
 
