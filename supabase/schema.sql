@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT students_number_format_chk CHECK (student_number ~ '^PS/[0-9]{4}/[0-9]{3,}$')
+    CONSTRAINT students_number_format_chk CHECK (student_number ~ '^[A-Z]{2}/[0-9]{4}/[0-9]{3,}$')
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_students_student_number ON public.students(student_number);
