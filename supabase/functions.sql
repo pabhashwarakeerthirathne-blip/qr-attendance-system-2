@@ -167,7 +167,7 @@ BEGIN
     END IF;
 
     -- 2. Validate Student Number Format (^PS/\d{4}/\d{3,}$)
-    IF v_norm_number !~ '^[A-Za-z]{2}/[0-9]{4}/[0-9]{3,}$' THEN
+    IF v_norm_number !~ '^([A-Z]{2})/[0-9]{4}/[0-9]{3,}$' THEN
     RETURN jsonb_build_object(
         'success', false,
         'code', 'INVALID_FORMAT',
@@ -395,7 +395,7 @@ DECLARE
 BEGIN
     v_norm_number := upper(trim(coalesce(p_student_number, '')));
 
-    IF v_norm_number !~ '^[A-Z]/[0-9]{4}/[0-9]{3,}$' THEN
+    IF v_norm_number !~ '^([A-Z]{2})/[0-9]{4}/[0-9]{3,}$' THEN
         RETURN jsonb_build_object(
             'success', false,
             'code', 'INVALID_FORMAT',
