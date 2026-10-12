@@ -303,10 +303,20 @@ export async function openAttendanceSession(sessionId) {
   };
 }
 
-export async function updateSessionSettings(sessionId, { event_name, session_date, start_time, end_time, status }) {
+export async function updateSessionSettings(sessionId, { event_name, session_date, end_date, start_time, end_time, status }) {
   await verifyRoleAccess(['SUPER_ADMIN']);
-  if (end_time <= start_time) {
-    throw new Error('End Time must be after Start Time.');
+
+  const safeStartDate = session_date || new Date().toISOString().split('T')[0];
+  const safeEndDate = end_date || safeStartDate;
+  const safeStartTime = start_time ? start_time.slice(0, 5) : '08:00';
+  const safeEndTime = end_time ? end_time.slice(0, 5) : '17:00';
+
+  // Combine dates and times for accurate multi-day / overnight validation
+  const startDateTime = new Date(`${safeStartDate}T${safeStartTime}:00`).getTime();
+  const endDateTime = new Date(`${safeEndDate}T${safeEndTime}:00`).getTime();
+
+  if (!isNaN(startDateTime) && !isNaN(endDateTime) && endDateTime <= startDateTime) {
+    throw new Error('End Date & Time must be after Start Date & Time.');
   }
 
   const client = initSupabase();
@@ -322,13 +332,18 @@ export async function updateSessionSettings(sessionId, { event_name, session_dat
     if (event_name) {
       await client
         .from('events')
-        .update({ event_name: event_name.trim(), event_date: session_date, start_time, end_time })
+        .update({ event_name: event_name.trim(), event_date: safeStartDate, start_time: safeStartTime, end_time: safeEndTime })
         .eq('id', existingSession.event_id);
     }
 
     const { error: updErr } = await client
       .from('attendance_sessions')
-      .update({ session_date, start_time, end_time })
+      .update({ 
+        session_date: safeStartDate, 
+        end_date: safeEndDate, 
+        start_time: safeStartTime, 
+        end_time: safeEndTime 
+      })
       .eq('id', sessionId);
 
     if (updErr) throw new Error(updErr.message);
@@ -341,9 +356,10 @@ export async function updateSessionSettings(sessionId, { event_name, session_dat
 
     await recordAuditLog('Session settings updated', 'attendance_sessions', sessionId, {
       event_name,
-      session_date,
-      start_time,
-      end_time,
+      session_date: safeStartDate,
+      end_date: safeEndDate,
+      start_time: safeStartTime,
+      end_time: safeEndTime,
       status
     });
     return true;
@@ -353,16 +369,17 @@ export async function updateSessionSettings(sessionId, { event_name, session_dat
   const session = db.attendance_sessions.find((s) => s.id === sessionId);
   if (!session) throw new Error('Session not found.');
 
-  session.session_date = session_date;
-  session.start_time = start_time;
-  session.end_time = end_time;
+  session.session_date = safeStartDate;
+  session.end_date = safeEndDate;
+  session.start_time = safeStartTime;
+  session.end_time = safeEndTime;
 
   const ev = db.events.find((e) => e.id === session.event_id);
   if (ev && event_name) {
     ev.event_name = event_name.trim();
-    ev.event_date = session_date;
-    ev.start_time = start_time;
-    ev.end_time = end_time;
+    ev.event_date = safeStartDate;
+    ev.start_time = safeStartTime;
+    ev.end_time = safeEndTime;
   }
 
   saveDevDb(db);
