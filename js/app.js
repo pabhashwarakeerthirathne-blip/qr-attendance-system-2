@@ -3102,6 +3102,15 @@ async function renderSessionSettingsView(container) {
     const start_time = container.querySelector('#ses-start')?.value || '08:00';
     const end_time = container.querySelector('#ses-end')?.value || '17:00';
 
+    // Combine date and time to correctly validate overnight/multi-day sessions
+    const startDateTime = new Date(`${session_date}T${start_time}`);
+    const endDateTime = new Date(`${end_date}T${end_time}`);
+
+    if (endDateTime <= startDateTime) {
+      showToast('End Date & Time must be after Start Date & Time.', 'error');
+      return;
+    }
+
     try {
       await updateSessionSettings(current.id, {
         event_name,
