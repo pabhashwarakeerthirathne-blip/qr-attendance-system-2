@@ -3010,39 +3010,51 @@ async function renderSessionSettingsView(container) {
                   />
                 </div>
 
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                 <div class="form-group">
-                  <label class="form-label" for="ses-date">Attendance Date</label>
+                  <label class="form-label" for="ses-start-date">Start Date</label>
                   <input
                     type="date"
-                    id="ses-date"
+                    id="ses-start-date"
                     class="form-input"
                     value="${escapeHtml(current.session_date)}"
                     required
                   />
                 </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                  <div class="form-group">
-                    <label class="form-label" for="ses-start">Start Time</label>
-                    <input
-                      type="time"
-                      id="ses-start"
-                      class="form-input"
-                      value="${escapeHtml(current.start_time.slice(0, 5))}"
-                      required
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="ses-end">End Time</label>
-                    <input
-                      type="time"
-                      id="ses-end"
-                      class="form-input"
-                      value="${escapeHtml(current.end_time.slice(0, 5))}"
-                      required
-                    />
-                  </div>
+                <div class="form-group">
+                  <label class="form-label" for="ses-end-date">End Date</label>
+                  <input
+                    type="date"
+                    id="ses-end-date"
+                    class="form-input"
+                    value="${escapeHtml(current.end_date || current.session_date)}"
+                    required
+                  />
                 </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="ses-start">Start Time</label>
+                  <input
+                    type="time"
+                    id="ses-start"
+                    class="form-input"
+                    value="${escapeHtml(current.start_time.slice(0, 5))}"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ses-end">End Time</label>
+                  <input
+                    type="time"
+                    id="ses-end"
+                    class="form-input"
+                    value="${escapeHtml(current.end_time.slice(0, 5))}"
+                    required
+                  />
+                </div>
+              </div>
 
                 <button type="submit" class="btn btn-primary btn-block" style="margin-bottom: 1rem;">
                   Save Session Configuration
@@ -3085,7 +3097,8 @@ async function renderSessionSettingsView(container) {
     e.preventDefault();
     if (!current) return;
     const event_name = container.querySelector('#ses-event-name')?.value || '';
-    const session_date = container.querySelector('#ses-date')?.value || '';
+    const session_date = container.querySelector('#ses-start-date')?.value || '';
+    const end_date = container.querySelector('#ses-end-date')?.value || session_date;
     const start_time = container.querySelector('#ses-start')?.value || '08:00';
     const end_time = container.querySelector('#ses-end')?.value || '17:00';
 
@@ -3093,6 +3106,7 @@ async function renderSessionSettingsView(container) {
       await updateSessionSettings(current.id, {
         event_name,
         session_date,
+        end_date,
         start_time,
         end_time,
         status: current.status
