@@ -1859,6 +1859,10 @@ async function renderSuperEventsView(container) {
   });
 }
 
+export async function renderEventsView(container) {
+  return renderSuperEventsView(container);
+}
+
   container.querySelectorAll('.btn-open-event-report').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();

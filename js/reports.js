@@ -218,6 +218,7 @@ export async function getEventsWithStats() {
         attendance_sessions (
           id,
           session_date,
+          end_date,
           start_time,
           end_time,
           status,
@@ -241,6 +242,7 @@ export async function getEventsWithStats() {
       };
     });
   }
+}
 
   const db = getDevDb();
   const regCount = db.students.filter((s) => s.active !== false).length;
