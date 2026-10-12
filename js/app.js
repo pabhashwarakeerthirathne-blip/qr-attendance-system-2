@@ -1706,15 +1706,27 @@ async function renderSuperEventsView(container) {
             />
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="ev-date">Date</label>
-            <input
-              type="date"
-              id="ev-date"
-              class="form-input"
-              value="${getTodayDateString()}"
-              required
-            />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="event-start-date">Start Date</label>
+              <input
+                type="date"
+                id="event-start-date"
+                class="form-input"
+                value="${getTodayDateString()}"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="event-end-date">End Date</label>
+              <input
+                type="date"
+                id="event-end-date"
+                class="form-input"
+                value="${getTodayDateString()}"
+                required
+              />
+            </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
@@ -1795,24 +1807,34 @@ async function renderSuperEventsView(container) {
 
   container.querySelector('#form-create-event')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const event_name = container.querySelector('#ev-name')?.value || '';
-    const event_date = container.querySelector('#ev-date')?.value || '';
-    const start_time = container.querySelector('#ev-start')?.value || '08:00';
-    const end_time = container.querySelector('#ev-end')?.value || '17:00';
-    const description = container.querySelector('#ev-desc')?.value || '';
+    const event_name = container.querySelector('#event-name')?.value || '';
+    const event_date = container.querySelector('#event-start-date')?.value || '';
+    const end_date = container.querySelector('#event-end-date')?.value || event_date;
+    const start_time = container.querySelector('#event-start')?.value || '08:00';
+    const end_time = container.querySelector('#event-end')?.value || '17:00';
+    const description = container.querySelector('#event-description')?.value || '';
+
+    // Validate full start and end timestamps
+    const startDateTime = new Date(`${event_date}T${start_time}:00`).getTime();
+    const endDateTime = new Date(`${end_date}T${end_time}:00`).getTime();
+
+    if (!isNaN(startDateTime) && !isNaN(endDateTime) && endDateTime <= startDateTime) {
+      showToast('End Date & Time must be after Start Date & Time.', 'error');
+      return;
+    }
 
     try {
-      const { session } = await createEvent({
+      await createEvent({
         event_name,
+        description,
         event_date,
+        end_date,
         start_time,
         end_time,
-        description,
         openImmediately: true
       });
-      state.activeSessionId = session.id;
-      showToast(`Created event "${event_name}" and opened attendance session.`, 'success');
-      await renderSuperEventsView(container);
+      showToast('Event created and session opened successfully.', 'success');
+      await renderEventsView(container);
     } catch (err) {
       showToast(err.message, 'error');
     }
