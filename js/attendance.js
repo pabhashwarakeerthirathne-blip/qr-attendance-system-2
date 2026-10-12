@@ -24,17 +24,21 @@ import {
 } from './utils.js';
 
 /**
- * Checks if a session has passed its configured end_time and should automatically close.
+ * Checks if a session has passed its configured end date and time and should automatically close.
  */
 function hasSessionExpired(session) {
   if (!session || session.status !== 'OPEN') return false;
-  const today = getTodayDateString();
-  const sDate = String(session.session_date).slice(0, 10);
-  if (today > sDate) return true;
-  if (today === sDate) {
-    const nowTime = getCurrentTimeString().slice(0, 5);
-    const endTime = String(session.end_time || '23:59').slice(0, 5);
-    if (nowTime >= endTime) return true;
+  
+  const startDate = String(session.session_date || '').slice(0, 10);
+  const endDate = String(session.end_date || startDate).slice(0, 10);
+  const startTime = String(session.start_time || '00:00').slice(0, 5);
+  const endTime = String(session.end_time || '23:59').slice(0, 5);
+
+  const nowMs = Date.now();
+  const endMs = new Date(`${endDate}T${endTime}:00`).getTime();
+
+  if (!isNaN(endMs)) {
+    return nowMs >= endMs;
   }
   return false;
 }
@@ -65,6 +69,7 @@ export async function createEvent({
   event_name,
   description = '',
   event_date,
+  end_date,
   start_time = '08:00',
   end_time = '17:00',
   openImmediately = true
@@ -73,7 +78,15 @@ export async function createEvent({
   const cleanName = (event_name || '').trim();
   if (cleanName.length < 2) throw new Error('Event Name must be at least 2 characters.');
   if (!event_date) throw new Error('Event Date is required.');
-  if (end_time <= start_time) throw new Error('End Time must be later than Start Time.');
+
+  const safeStartDate = event_date;
+  const safeEndDate = end_date || safeStartDate;
+  const startDateTime = new Date(`${safeStartDate}T${start_time}:00`).getTime();
+  const endDateTime = new Date(`${safeEndDate}T${end_time}:00`).getTime();
+
+  if (!isNaN(startDateTime) && !isNaN(endDateTime) && endDateTime <= startDateTime) {
+    throw new Error('End Date & Time must be after Start Date & Time.');
+  }
 
   const client = initSupabase();
   if (client) {
@@ -82,7 +95,7 @@ export async function createEvent({
       .insert({
         event_name: cleanName,
         description: (description || '').trim(),
-        event_date,
+        event_date: safeStartDate,
         start_time,
         end_time,
         status: 'ACTIVE'
@@ -96,7 +109,8 @@ export async function createEvent({
       .from('attendance_sessions')
       .insert({
         event_id: ev.id,
-        session_date: event_date,
+        session_date: safeStartDate,
+        end_date: safeEndDate,
         start_time,
         end_time,
         status: openImmediately ? 'OPEN' : 'CLOSED'
@@ -108,7 +122,8 @@ export async function createEvent({
 
     await recordAuditLog('Event created', 'events', ev.id, {
       event_name: cleanName,
-      event_date,
+      event_date: safeStartDate,
+      end_date: safeEndDate,
       session_id: ses.id
     });
 
@@ -121,7 +136,7 @@ export async function createEvent({
     id: `evt-${Date.now()}`,
     event_name: cleanName,
     description: (description || '').trim(),
-    event_date,
+    event_date: safeStartDate,
     start_time,
     end_time,
     status: 'ACTIVE',
@@ -130,7 +145,8 @@ export async function createEvent({
   const newSession = {
     id: `ses-${Date.now()}`,
     event_id: newEvent.id,
-    session_date: event_date,
+    session_date: safeStartDate,
+    end_date: safeEndDate,
     start_time,
     end_time,
     status: openImmediately ? 'OPEN' : 'CLOSED',
@@ -144,7 +160,8 @@ export async function createEvent({
 
   await recordAuditLog('Event created', 'events', newEvent.id, {
     event_name: cleanName,
-    event_date,
+    event_date: safeStartDate,
+    end_date: safeEndDate,
     session_id: newSession.id
   });
 
@@ -166,6 +183,7 @@ export async function listSessions() {
     if (error) throw new Error(error.message);
     return (data || []).map((s) => ({
       ...s,
+      end_date: s.end_date || s.session_date,
       event_name: s.events?.event_name || 'Event'
     }));
   }
@@ -176,6 +194,7 @@ export async function listSessions() {
       const ev = db.events.find((e) => e.id === s.event_id);
       return {
         ...s,
+        end_date: s.end_date || s.session_date,
         event_name: ev?.event_name || 'Event'
       };
     })
@@ -183,7 +202,7 @@ export async function listSessions() {
 }
 
 /**
- * Gets the current active/latest attendance session (auto-closing if past end_time).
+ * Gets the current active/latest attendance session (auto-closing if past end time).
  */
 export async function getActiveOrLatestSession(preferredSessionId = null) {
   const sessions = await listSessions();
@@ -275,11 +294,6 @@ export async function openAttendanceSession(sessionId) {
   const session = db.attendance_sessions.find((s) => s.id === sessionId);
   if (!session) throw new Error('Attendance session not found.');
 
-  const today = getTodayDateString();
-  if (session.session_date === today && getCurrentTimeString().slice(0, 5) >= session.end_time.slice(0, 5)) {
-    session.end_time = '23:59';
-  }
-
   session.status = 'OPEN';
   session.closed_at = null;
 
@@ -311,7 +325,6 @@ export async function updateSessionSettings(sessionId, { event_name, session_dat
   const safeStartTime = start_time ? start_time.slice(0, 5) : '08:00';
   const safeEndTime = end_time ? end_time.slice(0, 5) : '17:00';
 
-  // Combine dates and times for accurate multi-day / overnight validation
   const startDateTime = new Date(`${safeStartDate}T${safeStartTime}:00`).getTime();
   const endDateTime = new Date(`${safeEndDate}T${safeEndTime}:00`).getTime();
 
@@ -454,7 +467,6 @@ export async function recordAttendanceScan(
   const client = initSupabase();
   if (client) {
     try {
-      // BLIND SCAN AUTO-REGISTRATION: Check if student exists; if not, insert instantly on first scan
       const { data: existingStudent } = await client
         .from('students')
         .select('id')
@@ -533,7 +545,6 @@ export async function recordAttendanceScan(
     };
   }
 
-  // BLIND SCAN AUTO-REGISTRATION for Sandbox
   let student = db.students.find(
     (s) => s.student_number === studentNumber && s.active !== false
   );
@@ -856,7 +867,6 @@ export async function manualCreateAttendanceRecord({
 
   const client = initSupabase();
   if (client) {
-    // BLIND SCAN AUTO-REGISTRATION: Check if student exists; if not, insert instantly on the fly
     let { data: student } = await client
       .from('students')
       .select('id')
@@ -912,7 +922,6 @@ export async function manualCreateAttendanceRecord({
     return data;
   }
 
-  // Development sandbox fallback with auto-registration
   const db = getDevDb();
   let student = db.students.find((s) => s.student_number === normNumber);
   if (!student) {
