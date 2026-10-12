@@ -303,12 +303,37 @@ export async function openAttendanceSession(sessionId) {
   };
 }
 
-export async function updateSessionSettings(sessionId, { event_name, session_date, start_time, end_time, status }) {
+export async function updateSessionSettings(sessionId, { event_name, session_date, end_date, start_time, end_time, status }) {
   await verifyRoleAccess(['SUPER_ADMIN']);
-  if (end_time <= start_time) {
-    throw new Error('End Time must be after Start Time.');
+
+  // Combine dates and times for accurate multi-day / overnight validation
+  const startDateTime = new Date(`${session_date}T${start_time}:00`).getTime();
+  const endDateTime = new Date(`${end_date || session_date}T${end_time}:00`).getTime();
+
+  if (endDateTime <= startDateTime) {
+    throw new Error('End Date & Time must be after Start Date & Time.');
   }
 
+  // Update session in Supabase table (including end_date)
+  const { error } = await supabaseClient
+    .from('attendance_sessions')
+    .update({
+      event_name,
+      session_date,
+      end_date: end_date || session_date,
+      start_time,
+      end_time,
+      status,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', sessionId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { success: true };
+}
   const client = initSupabase();
   if (client) {
     const { data: existingSession, error: fetchErr } = await client
