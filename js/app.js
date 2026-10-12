@@ -1826,7 +1826,7 @@ async function renderSuperEventsView(container) {
 
   container.querySelector('#form-create-event')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const event_name = container.querySelector('#event-name')?.value || '';
+    const event_name = container.querySelector('#ev-name')?.value || '';
     const event_date = container.querySelector('#event-start-date')?.value || '';
     const end_date = container.querySelector('#event-end-date')?.value || event_date;
     const start_time = container.querySelector('#event-start')?.value || '08:00';
