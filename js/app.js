@@ -1691,7 +1691,7 @@ async function renderSuperEventsView(container) {
 
   container.innerHTML = `
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; align-items: start;">
-      <!-- Create Event Card (Section 41) -->
+      <!-- Create Event Card -->
       <div class="card">
         <h2 class="card-title" style="margin-bottom: 0.75rem;">Create New Event</h2>
         <form id="form-create-event">
@@ -1756,7 +1756,7 @@ async function renderSuperEventsView(container) {
         </form>
       </div>
 
-      <!-- Event History List (Section 42) -->
+      <!-- Event History List -->
       <div class="card">
         <h2 class="card-title" style="margin-bottom: 0.75rem;">Event History (${events.length})</h2>
         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
@@ -1774,9 +1774,8 @@ async function renderSuperEventsView(container) {
                   (ev) => {
                     const ses = ev.sessions && ev.sessions[0] ? ev.sessions[0] : {};
                     const startDate = ses.session_date || ev.event_date || '';
-                    const endDate = ses.end_date || startDate;
+                    const endDate = ses.end_date || ev.end_date || startDate;
 
-                    // Clean time helper to strip timezone offsets (like -07:00)
                     const cleanTime = (t) => {
                       if (!t) return '08:00';
                       const match = String(t).match(/(\d{2}:\d{2})/);
@@ -1786,8 +1785,7 @@ async function renderSuperEventsView(container) {
                     const startTime = cleanTime(ses.start_time || ev.start_time);
                     const endTime = cleanTime(ses.end_time || ev.end_time);
 
-                    // Explicitly display both Start and End Dates & Times
-                    const dateDisplay = `${formatDateShort(startDate)} ${startTime} — ${formatDateShort(endDate)} ${endTime}`;
+                    const dateDisplay = `${formatDateShort(startDate)}${startTime} — ${formatDateShort(endDate)}${endTime}`;
 
                     return `
                     <div class="student-record-item" style="cursor: pointer;" data-event-id="${escapeHtml(ev.id)}">
@@ -1829,11 +1827,10 @@ async function renderSuperEventsView(container) {
     const event_name = container.querySelector('#ev-name')?.value || '';
     const event_date = container.querySelector('#event-start-date')?.value || '';
     const end_date = container.querySelector('#event-end-date')?.value || event_date;
-    const start_time = container.querySelector('#event-start')?.value || '08:00';
-    const end_time = container.querySelector('#event-end')?.value || '17:00';
-    const description = container.querySelector('#event-description')?.value || '';
+    const start_time = container.querySelector('#ev-start')?.value || '08:00';
+    const end_time = container.querySelector('#ev-end')?.value || '17:00';
+    const description = container.querySelector('#ev-desc')?.value || '';
 
-    // Validate full start and end timestamps
     const startDateTime = new Date(`${event_date}T${start_time}:00`).getTime();
     const endDateTime = new Date(`${end_date}T${end_time}:00`).getTime();
 
@@ -1853,11 +1850,14 @@ async function renderSuperEventsView(container) {
         openImmediately: true
       });
       showToast('Event created and session opened successfully.', 'success');
-      await renderEventsView(container);
+      
+      // THIS IS THE FIXED LINE: Calls the correct function name
+      await renderSuperEventsView(container);
     } catch (err) {
       showToast(err.message, 'error');
     }
   });
+}
 
   container.querySelectorAll('.btn-open-event-report').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
