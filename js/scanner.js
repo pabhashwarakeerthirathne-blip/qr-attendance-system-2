@@ -421,7 +421,7 @@ export function renderScanResultBanner(container, result, onForceLeaving = null)
 
   if (result.code === 'INVALID_FORMAT') {
     errorTitle = 'INVALID STUDENT ID';
-    errorBody = 'This QR code does not contain a valid Student Number (Expected: PS/2023/174).';
+    errorBody = result.message || 'This QR code does not contain a valid Student Number (Expected: XX/YYYY/NNN).';
   } else if (result.code === 'STUDENT_NOT_FOUND') {
     errorTitle = 'STUDENT NOT FOUND';
     errorBody = `${result.student_number} is not registered in this event. Please contact the administrator.`;
