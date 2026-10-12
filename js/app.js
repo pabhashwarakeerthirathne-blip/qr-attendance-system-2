@@ -1771,33 +1771,47 @@ async function renderSuperEventsView(container) {
               </div>`
             : events
                 .map(
-                  (ev) => `
-                  <div class="student-record-item" style="cursor: pointer;" data-event-id="${escapeHtml(ev.id)}">
-                    <div>
-                      <strong style="font-size: 1.05rem;">${escapeHtml(ev.event_name)}</strong>
-                      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                        ${escapeHtml(formatDateShort(ev.event_date))} • ${escapeHtml(ev.start_time.slice(0, 5))} - ${escapeHtml(ev.end_time.slice(0, 5))}
+                  (ev) => {
+                    // Extract session or fallback to event properties safely
+                    const ses = ev.sessions && ev.sessions[0] ? ev.sessions[0] : {};
+                    const startDate = ses.session_date || ev.event_date || '';
+                    const endDate = ses.end_date || startDate;
+                    const startTime = (ses.start_time || ev.start_time || '08:00').slice(0, 5);
+                    const endTime = (ses.end_time || ev.end_time || '17:00').slice(0, 5);
+
+                    // Format date range display
+                    const dateDisplay = startDate === endDate
+                      ? `${formatDateShort(startDate)} • ${startTime} -${endTime}`
+                      : `${formatDateShort(startDate)}${startTime} — ${formatDateShort(endDate)}${endTime}`;
+
+                    return `
+                    <div class="student-record-item" style="cursor: pointer;" data-event-id="${escapeHtml(ev.id)}">
+                      <div>
+                        <strong style="font-size: 1.05rem;">${escapeHtml(ev.event_name)}</strong>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                          ${escapeHtml(dateDisplay)}
+                        </div>
+                        <div style="margin-top: 0.45rem; display: flex; gap: 0.85rem; font-size: 0.85rem; font-weight: 600;">
+                          <span>${ev.registered_students} Students</span>
+                          <span style="color: var(--primary);">${ev.attended_count} Attended</span>
+                          <span>${formatDurationMinutes(ev.total_minutes)} Total</span>
+                        </div>
                       </div>
-                      <div style="margin-top: 0.45rem; display: flex; gap: 0.85rem; font-size: 0.85rem; font-weight: 600;">
-                        <span>${ev.registered_students} Students</span>
-                        <span style="color: var(--primary);">${ev.attended_count} Attended</span>
-                        <span>${formatDurationMinutes(ev.total_minutes)} Total</span>
+                      <div style="display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
+                        <button type="button" class="btn btn-sm btn-outline btn-open-event-report" data-event-id="${escapeHtml(ev.id)}">
+                          View Report →
+                        </button>
+                        ${
+                          ev.sessions && ev.sessions[0]
+                            ? `<button type="button" class="btn btn-sm btn-primary btn-select-session" data-session-id="${escapeHtml(ev.sessions[0].id)}">
+                                Set Active Session
+                              </button>`
+                            : ''
+                        }
                       </div>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
-                      <button type="button" class="btn btn-sm btn-outline btn-open-event-report" data-event-id="${escapeHtml(ev.id)}">
-                        View Report →
-                      </button>
-                      ${
-                        ev.sessions && ev.sessions[0]
-                          ? `<button type="button" class="btn btn-sm btn-primary btn-select-session" data-session-id="${escapeHtml(ev.sessions[0].id)}">
-                              Set Active Session
-                            </button>`
-                          : ''
-                      }
-                    </div>
-                  </div>
-                `
+                  `;
+                  }
                 )
                 .join('')
         }
