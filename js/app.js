@@ -1772,24 +1772,29 @@ async function renderSuperEventsView(container) {
             : events
                 .map(
                   (ev) => {
-                    // Extract session or fallback to event properties safely
                     const ses = ev.sessions && ev.sessions[0] ? ev.sessions[0] : {};
                     const startDate = ses.session_date || ev.event_date || '';
                     const endDate = ses.end_date || startDate;
-                    const startTime = (ses.start_time || ev.start_time || '08:00').slice(0, 5);
-                    const endTime = (ses.end_time || ev.end_time || '17:00').slice(0, 5);
 
-                    // Format date range display
-                    const dateDisplay = startDate === endDate
-                      ? `${formatDateShort(startDate)} • ${startTime} -${endTime}`
-                      : `${formatDateShort(startDate)}${startTime} — ${formatDateShort(endDate)}${endTime}`;
+                    // Clean time helper to strip timezone offsets (like -07:00)
+                    const cleanTime = (t) => {
+                      if (!t) return '08:00';
+                      const match = String(t).match(/(\d{2}:\d{2})/);
+                      return match ? match[1] : String(t).slice(0, 5);
+                    };
+
+                    const startTime = cleanTime(ses.start_time || ev.start_time);
+                    const endTime = cleanTime(ses.end_time || ev.end_time);
+
+                    // Explicitly display both Start and End Dates & Times
+                    const dateDisplay = `${formatDateShort(startDate)} ${startTime} — ${formatDateShort(endDate)} ${endTime}`;
 
                     return `
                     <div class="student-record-item" style="cursor: pointer;" data-event-id="${escapeHtml(ev.id)}">
                       <div>
                         <strong style="font-size: 1.05rem;">${escapeHtml(ev.event_name)}</strong>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                          ${escapeHtml(dateDisplay)}
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem; font-weight: 500;">
+                          📅 ${escapeHtml(dateDisplay)}
                         </div>
                         <div style="margin-top: 0.45rem; display: flex; gap: 0.85rem; font-size: 0.85rem; font-weight: 600;">
                           <span>${ev.registered_students} Students</span>
