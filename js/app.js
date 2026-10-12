@@ -1419,8 +1419,7 @@ async function renderCurrentEventView(container) {
           <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">CURRENT EVENT</span>
           <h2 class="card-title" style="font-size: 1.3rem;">${escapeHtml(session?.event_name || 'No Event Selected')}</h2>
           <p style="font-size: 0.88rem; color: var(--text-secondary);">
-            Start: <strong>${escapeHtml(session?.session_date || '-')} ${escapeHtml(formatTime12h(session?.start_time))}</strong> <br>
-            End: <strong>${escapeHtml(session?.end_date || session?.session_date || '-')} ${escapeHtml(formatTime12h(session?.end_time))}</strong>
+            Date: ${escapeHtml(formatDateLong(session?.session_date))} • Session Hours: ${escapeHtml(session?.start_time?.slice(0, 5) || '08:00')} to ${escapeHtml(session?.end_time?.slice(0, 5) || '17:00')}
           </p>
         </div>
         <span class="status-badge ${session?.status === 'OPEN' ? 'badge-success' : 'badge-danger'}">
@@ -1575,8 +1574,9 @@ async function renderSuperDashboardView(container) {
             ${escapeHtml(session?.event_name || 'No Event Session Configured')}
           </h2>
           <p style="font-size: 0.88rem; color: var(--text-secondary);">
-            Start: <strong>${escapeHtml(session?.session_date || '-')} ${escapeHtml(formatTime12h(session?.start_time))}</strong> <br>
-            End: <strong>${escapeHtml(session?.end_date || session?.session_date || '-')} ${escapeHtml(formatTime12h(session?.end_time))}</strong>
+            Date: <strong>${escapeHtml(session?.session_date || '-')}</strong> •
+            Start: <strong>${escapeHtml(formatTime12h(session?.start_time))}</strong> •
+            End: <strong>${escapeHtml(formatTime12h(session?.end_time))}</strong>
           </p>
         </div>
 
@@ -1706,27 +1706,15 @@ async function renderSuperEventsView(container) {
             />
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <div class="form-group">
-              <label class="form-label" for="event-start-date">Start Date</label>
-              <input
-                type="date"
-                id="event-start-date"
-                class="form-input"
-                value="${getTodayDateString()}"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="event-end-date">End Date</label>
-              <input
-                type="date"
-                id="event-end-date"
-                class="form-input"
-                value="${getTodayDateString()}"
-                required
-              />
-            </div>
+          <div class="form-group">
+            <label class="form-label" for="ev-date">Date</label>
+            <input
+              type="date"
+              id="ev-date"
+              class="form-input"
+              value="${getTodayDateString()}"
+              required
+            />
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
@@ -1771,52 +1759,33 @@ async function renderSuperEventsView(container) {
               </div>`
             : events
                 .map(
-                  (ev) => {
-                    const ses = ev.sessions && ev.sessions[0] ? ev.sessions[0] : {};
-                    const startDate = ses.session_date || ev.event_date || '';
-                    const endDate = ses.end_date || startDate;
-
-                    // Clean time helper to strip timezone offsets (like -07:00)
-                    const cleanTime = (t) => {
-                      if (!t) return '08:00';
-                      const match = String(t).match(/(\d{2}:\d{2})/);
-                      return match ? match[1] : String(t).slice(0, 5);
-                    };
-
-                    const startTime = cleanTime(ses.start_time || ev.start_time);
-                    const endTime = cleanTime(ses.end_time || ev.end_time);
-
-                    // Explicitly display both Start and End Dates & Times
-                    const dateDisplay = `${formatDateShort(startDate)} ${startTime} — ${formatDateShort(endDate)} ${endTime}`;
-
-                    return `
-                    <div class="student-record-item" style="cursor: pointer;" data-event-id="${escapeHtml(ev.id)}">
-                      <div>
-                        <strong style="font-size: 1.05rem;">${escapeHtml(ev.event_name)}</strong>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem; font-weight: 500;">
-                          📅 ${escapeHtml(dateDisplay)}
-                        </div>
-                        <div style="margin-top: 0.45rem; display: flex; gap: 0.85rem; font-size: 0.85rem; font-weight: 600;">
-                          <span>${ev.registered_students} Students</span>
-                          <span style="color: var(--primary);">${ev.attended_count} Attended</span>
-                          <span>${formatDurationMinutes(ev.total_minutes)} Total</span>
-                        </div>
+                  (ev) => `
+                  <div class="student-record-item" style="cursor: pointer;" data-event-id="${escapeHtml(ev.id)}">
+                    <div>
+                      <strong style="font-size: 1.05rem;">${escapeHtml(ev.event_name)}</strong>
+                      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                        ${escapeHtml(formatDateShort(ev.event_date))} • ${escapeHtml(ev.start_time.slice(0, 5))} - ${escapeHtml(ev.end_time.slice(0, 5))}
                       </div>
-                      <div style="display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
-                        <button type="button" class="btn btn-sm btn-outline btn-open-event-report" data-event-id="${escapeHtml(ev.id)}">
-                          View Report →
-                        </button>
-                        ${
-                          ev.sessions && ev.sessions[0]
-                            ? `<button type="button" class="btn btn-sm btn-primary btn-select-session" data-session-id="${escapeHtml(ev.sessions[0].id)}">
-                                Set Active Session
-                              </button>`
-                            : ''
-                        }
+                      <div style="margin-top: 0.45rem; display: flex; gap: 0.85rem; font-size: 0.85rem; font-weight: 600;">
+                        <span>${ev.registered_students} Students</span>
+                        <span style="color: var(--primary);">${ev.attended_count} Attended</span>
+                        <span>${formatDurationMinutes(ev.total_minutes)} Total</span>
                       </div>
                     </div>
-                  `;
-                  }
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
+                      <button type="button" class="btn btn-sm btn-outline btn-open-event-report" data-event-id="${escapeHtml(ev.id)}">
+                        View Report →
+                      </button>
+                      ${
+                        ev.sessions && ev.sessions[0]
+                          ? `<button type="button" class="btn btn-sm btn-primary btn-select-session" data-session-id="${escapeHtml(ev.sessions[0].id)}">
+                              Set Active Session
+                            </button>`
+                          : ''
+                      }
+                    </div>
+                  </div>
+                `
                 )
                 .join('')
         }
@@ -1827,39 +1796,22 @@ async function renderSuperEventsView(container) {
   container.querySelector('#form-create-event')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const event_name = container.querySelector('#ev-name')?.value || '';
-    const event_date = container.querySelector('#event-start-date')?.value || '';
-    let end_date = container.querySelector('#event-end-date')?.value || event_date;
+    const event_date = container.querySelector('#ev-date')?.value || '';
     const start_time = container.querySelector('#ev-start')?.value || '08:00';
     const end_time = container.querySelector('#ev-end')?.value || '17:00';
     const description = container.querySelector('#ev-desc')?.value || '';
 
-    // FIX: Auto-detect overnight sessions and move end_date to the next day
-    if (event_date === end_date && end_time < start_time) {
-      const d = new Date(event_date);
-      d.setDate(d.getDate() + 1);
-      end_date = d.toISOString().split('T')[0];
-    }
-
-    // Validate full start and end timestamps
-    const startDateTime = new Date(`${event_date}T${start_time}:00`).getTime();
-    const endDateTime = new Date(`${end_date}T${end_time}:00`).getTime();
-
-    if (!isNaN(startDateTime) && !isNaN(endDateTime) && endDateTime <= startDateTime) {
-      showToast('End Date & Time must be after Start Date & Time.', 'error');
-      return;
-    }
-
     try {
-      await createEvent({
+      const { session } = await createEvent({
         event_name,
-        description,
         event_date,
-        end_date,
         start_time,
         end_time,
+        description,
         openImmediately: true
       });
-      showToast('Event created and session opened successfully.', 'success');
+      state.activeSessionId = session.id;
+      showToast(`Created event "${event_name}" and opened attendance session.`, 'success');
       await renderSuperEventsView(container);
     } catch (err) {
       showToast(err.message, 'error');
@@ -2365,11 +2317,11 @@ async function renderSuperStudentsView(container) {
               <div style="margin-top: 1rem; padding: 0.85rem; background: var(--bg-subtle); border-radius: var(--radius-sm); font-size: 0.84rem;">
                 <strong>Last CSV Import Summary:</strong>
                 <ul style="margin-top: 0.35rem; padding-left: 1.1rem;">
-                  <li style="color: var(--success);">Successfully Imported: <strong>\${importRes.importedCount}</strong></li>
-                  <li style="color: var(--warning);">Duplicates Skipped: <strong>\${importRes.duplicateCount}</strong></li>
-                  <li style="color: var(--danger);">Invalid Format Rejected: <strong>\${importRes.invalidCount}</strong></li>
+                  <li style="color: var(--success);">Successfully Imported: <strong>${importRes.importedCount}</strong></li>
+                  <li style="color: var(--warning);">Duplicates Skipped: <strong>${importRes.duplicateCount}</strong></li>
+                  <li style="color: var(--danger);">Invalid Format Rejected: <strong>${importRes.invalidCount}</strong></li>
                 </ul>
-                \${
+                ${
                   importRes.invalidRecords.length > 0
                     ? `<div style="margin-top: 0.4rem; color: var(--danger);">
                         Invalid rows: ${importRes.invalidRecords
@@ -2421,7 +2373,7 @@ async function renderSuperStudentsView(container) {
                   </tr>
                 </thead>
                 <tbody>
-                  \${students
+                  ${students
                     .map(
                       (s) => `
                       <tr>
@@ -2465,13 +2417,13 @@ async function renderSuperStudentsView(container) {
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
               <span style="font-size: 0.85rem; color: var(--text-secondary);">
-                Page ${page} of${totalPages}
+                Page ${page} of ${totalPages}
               </span>
               <div style="display: flex; gap: 0.4rem;">
-                <button type="button" class="btn btn-sm btn-outline" id="btn-stu-prev" \${page <= 1 ? 'disabled' : ''}>
+                <button type="button" class="btn btn-sm btn-outline" id="btn-stu-prev" ${page <= 1 ? 'disabled' : ''}>
                   ← Prev
                 </button>
-                <button type="button" class="btn btn-sm btn-outline" id="btn-stu-next" \${page >= totalPages ? 'disabled' : ''}>
+                <button type="button" class="btn btn-sm btn-outline" id="btn-stu-next" ${page >= totalPages ? 'disabled' : ''}>
                   Next →
                 </button>
               </div>
@@ -2656,17 +2608,17 @@ async function renderSuperAdminsView(container) {
                   (a) => `
                   <tr>
                     <td>
-                      <strong>\${escapeHtml(a.name)}</strong><br/>
-                      <span style="font-size: 0.8rem; color: var(--text-secondary);">\${escapeHtml(a.email)}</span>
+                      <strong>${escapeHtml(a.name)}</strong><br/>
+                      <span style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(a.email)}</span>
                     </td>
-                    <td><span class="mono" style="font-size: 0.8rem; font-weight: 700;">\${escapeHtml(a.role)}</span></td>
+                    <td><span class="mono" style="font-size: 0.8rem; font-weight: 700;">${escapeHtml(a.role)}</span></td>
                     <td>
-                      <span class="status-badge \${a.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">
-                        \${escapeHtml(a.status)}
+                      <span class="status-badge ${a.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">
+                        ${escapeHtml(a.status)}
                       </span>
                     </td>
                     <td>
-                      \${
+                      ${
                         a.role === 'SUPER_ADMIN'
                           ? `<span style="font-size: 0.8rem; color: var(--text-muted);">Protected</span>`
                           : a.status === 'ACTIVE'
@@ -2784,27 +2736,27 @@ async function renderSuperReportsView(container) {
             <div class="stats-grid" style="margin-top: 1rem;">
               <div class="stat-card stat-primary">
                 <span class="stat-label">Total Students</span>
-                <span class="stat-value">\${summary.unique_students_in_report || 0}</span>
+                <span class="stat-value">${summary.unique_students_in_report || 0}</span>
               </div>
               <div class="stat-card stat-indigo">
                 <span class="stat-label">Total Attendance Records</span>
-                <span class="stat-value">\${summary.total_records || 0}</span>
+                <span class="stat-value">${summary.total_records || 0}</span>
               </div>
               <div class="stat-card stat-success">
                 <span class="stat-label">Total Attendance Hours</span>
-                <span class="stat-value">\${formatDurationMinutes(summary.total_minutes || 0)}</span>
+                <span class="stat-value">${formatDurationMinutes(summary.total_minutes || 0)}</span>
               </div>
               <div class="stat-card stat-primary">
                 <span class="stat-label">Currently Present</span>
-                <span class="stat-value">\${summary.currently_present || 0}</span>
+                <span class="stat-value">${summary.currently_present || 0}</span>
               </div>
               <div class="stat-card stat-success">
                 <span class="stat-label">Left</span>
-                <span class="stat-value">\${summary.left_count || 0}</span>
+                <span class="stat-value">${summary.left_count || 0}</span>
               </div>
               <div class="stat-card stat-warning">
                 <span class="stat-label">Missing Leaving Scan</span>
-                <span class="stat-value">\${summary.missing_leaving_count || 0}</span>
+                <span class="stat-value">${summary.missing_leaving_count || 0}</span>
               </div>
             </div>
           `
@@ -2925,21 +2877,21 @@ function renderReportTabControlsHTML(tab, f, events, studentReportData) {
             <div class="stats-grid" style="margin-top: 1rem;">
               <div class="stat-card stat-primary">
                 <span class="stat-label">Student Number</span>
-                <span class="stat-value mono" style="font-size: 1.4rem;">\${escapeHtml(studentReportData.student_number)}</span>
+                <span class="stat-value mono" style="font-size: 1.4rem;">${escapeHtml(studentReportData.student_number)}</span>
               </div>
               <div class="stat-card stat-indigo">
                 <span class="stat-label">Total Days</span>
-                <span class="stat-value">\${studentReportData.days_attended}</span>
+                <span class="stat-value">${studentReportData.days_attended}</span>
               </div>
               <div class="stat-card stat-success">
                 <span class="stat-label">Total Hours</span>
-                <span class="stat-value">\${formatDurationMinutes(studentReportData.total_minutes)}</span>
+                <span class="stat-value">${formatDurationMinutes(studentReportData.total_minutes)}</span>
               </div>
             </div>
           `
           : studentReportData && !studentReportData.success
           ? `<div class="scan-feedback-panel feedback-error" style="margin-top: 0.75rem;">
-              <strong>\${escapeHtml(studentReportData.message)}</strong>
+              <strong>${escapeHtml(studentReportData.message)}</strong>
             </div>`
           : ''
       }
@@ -3034,7 +2986,7 @@ async function renderSessionSettingsView(container) {
               <div class="form-group">
                 <label class="form-label" for="ses-select-switcher">Select Session to Configure</label>
                 <select id="ses-select-switcher" class="form-select">
-                  \${sessions
+                  ${sessions
                     .map(
                       (s) => `
                       <option value="${escapeHtml(s.id)}" ${s.id === current.id ? 'selected' : ''}>
@@ -3053,7 +3005,7 @@ async function renderSessionSettingsView(container) {
                     type="text"
                     id="ses-event-name"
                     class="form-input"
-                    value="\${escapeHtml(current.event_name)}"
+                    value="${escapeHtml(current.event_name)}"
                     required
                   />
                 </div>
@@ -3065,7 +3017,7 @@ async function renderSessionSettingsView(container) {
                     type="date"
                     id="ses-start-date"
                     class="form-input"
-                    value="\${escapeHtml(current.session_date)}"
+                    value="${escapeHtml(current.session_date)}"
                     required
                   />
                 </div>
@@ -3075,7 +3027,7 @@ async function renderSessionSettingsView(container) {
                     type="date"
                     id="ses-end-date"
                     class="form-input"
-                    value="\${escapeHtml(current.end_date || current.session_date)}"
+                    value="${escapeHtml(current.end_date || current.session_date)}"
                     required
                   />
                 </div>
@@ -3088,7 +3040,7 @@ async function renderSessionSettingsView(container) {
                     type="time"
                     id="ses-start"
                     class="form-input"
-                    value="\${escapeHtml(current.start_time.slice(0, 5))}"
+                    value="${escapeHtml(current.start_time.slice(0, 5))}"
                     required
                   />
                 </div>
@@ -3098,7 +3050,7 @@ async function renderSessionSettingsView(container) {
                     type="time"
                     id="ses-end"
                     class="form-input"
-                    value="\${escapeHtml(current.end_time.slice(0, 5))}"
+                    value="${escapeHtml(current.end_time.slice(0, 5))}"
                     required
                   />
                 </div>
@@ -3114,7 +3066,7 @@ async function renderSessionSettingsView(container) {
                   type="button"
                   class="btn btn-success"
                   id="btn-settings-open-session"
-                  \${current.status === 'OPEN' ? 'disabled' : ''}
+                  ${current.status === 'OPEN' ? 'disabled' : ''}
                 >
                   OPEN SESSION
                 </button>
@@ -3122,7 +3074,7 @@ async function renderSessionSettingsView(container) {
                   type="button"
                   class="btn btn-danger"
                   id="btn-settings-close-session"
-                  \${current.status === 'CLOSED' ? 'disabled' : ''}
+                  ${current.status === 'CLOSED' ? 'disabled' : ''}
                 >
                   CLOSE SESSION
                 </button>
@@ -3146,21 +3098,11 @@ async function renderSessionSettingsView(container) {
     if (!current) return;
     const event_name = container.querySelector('#ses-event-name')?.value || '';
     const session_date = container.querySelector('#ses-start-date')?.value || '';
-    let end_date = container.querySelector('#ses-end-date')?.value || session_date;
+    const end_date = container.querySelector('#ses-end-date')?.value || session_date;
     const start_time = container.querySelector('#ses-start')?.value || '08:00';
     const end_time = container.querySelector('#ses-end')?.value || '17:00';
 
-    // FIX: Auto-detect overnight sessions and move end_date to the next day
-    if (session_date === end_date && end_time < start_time) {
-      const d = new Date(session_date);
-      d.setDate(d.getDate() + 1);
-      end_date = d.toISOString().split('T')[0];
-      
-      // Visually update the input field so the Admin sees the date changed
-      const endDateInput = container.querySelector('#ses-end-date');
-      if (endDateInput) endDateInput.value = end_date;
-    }
-
+    // Combine date and time to correctly validate overnight/multi-day sessions
     const startDateTime = new Date(`${session_date}T${start_time}`);
     const endDateTime = new Date(`${end_date}T${end_time}`);
 
@@ -3240,7 +3182,7 @@ async function renderAuditLogsView(container) {
                   </tr>
                 </thead>
                 <tbody>
-                  \${logs
+                  ${logs
                     .map(
                       (log) => `
                       <tr>
@@ -3255,7 +3197,7 @@ async function renderAuditLogsView(container) {
                         </td>
                         <td class="mono" style="font-size: 0.8rem;">
                           ${escapeHtml(log.table_name)}
-                          ${log.record_id ? `<br/><span style="color: var(--text-muted);">\${escapeHtml(String(log.record_id).slice(0, 16))}</span>` : ''}
+                          ${log.record_id ? `<br/><span style="color: var(--text-muted);">${escapeHtml(String(log.record_id).slice(0, 16))}</span>` : ''}
                         </td>
                         <td class="mono" style="font-size: 0.78rem; max-width: 320px; overflow: hidden; text-overflow: ellipsis;">
                           ${escapeHtml(JSON.stringify(log.details || {}))}
